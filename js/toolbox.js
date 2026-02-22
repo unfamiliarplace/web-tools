@@ -456,7 +456,7 @@ class Stage {
    */
   addScene = (s, changeCallback) => {
     this.scenes[s.name] = s;
-    if (typeof changeCallback !== undefined) {
+    if (typeof changeCallback !== "undefined") {
       this.sceneChangeCallbacks[s.name] = changeCallback;
     }
   };
