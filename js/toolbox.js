@@ -446,14 +446,19 @@ class Stage {
     this.scenes = {};
     this.active = null;
     this.default = null;
+    this.sceneChangeCallbacks = {};
   }
 
   /**
    * Add a ready-made scene to this stage, keying it by name.
    * @param s
+   * @param changeCallback Optional callback when switching to the scene
    */
-  addScene = (s) => {
+  addScene = (s, changeCallback) => {
     this.scenes[s.name] = s;
+    if (typeof changeCallback !== undefined) {
+      this.sceneChangeCallbacks[s.name] = changeCallback;
+    }
   };
 
   /**
@@ -462,10 +467,11 @@ class Stage {
    * @param name
    * @param panelSelector
    * @param toggleSelector
+   * @param changeCallback Optional callback when switching to the scene
    */
-  createScene = (name, panelSelector, toggleSelector) => {
+  createScene = (name, panelSelector, toggleSelector, changeCallback) => {
     let s = new Scene(name, this, panelSelector, toggleSelector);
-    this.addScene(s);
+    this.addScene(s, changeCallback);
   }
 
   /**
@@ -476,6 +482,16 @@ class Stage {
   createScenes = (sceneData) => {
     for (let scene of sceneData) {
       this.createScene(scene.name, scene.panelSelector, scene.toggleSelector);
+    }
+  }
+
+  setSceneChangeCallback(sid, cb) {
+    this.sceneChangeCallbacks[sid] = cb;
+  }
+
+  removeSceneChangeCallback(sid, cb) {
+    if (this.sceneChangeCallbacks.hasOwnProperty(sid)) {
+      delete this.sceneChangeCallbacks[sid];
     }
   }
 
@@ -503,6 +519,9 @@ class Stage {
     this.hideAll();
     this.scenes[sid].show();
     this.active = sid;
+    if (this.sceneChangeCallbacks.hasOwnProperty(sid)) {
+      this.sceneChangeCallbacks[sid]();
+    }
   };
 
   hide = (sid) => {
